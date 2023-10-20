@@ -45,7 +45,7 @@ void load_cust_info(TREE *pt,FILE *cust);
 void load_trans_info(TREE *pt,FILE *trans);
 void load_admin_info(ADMIN ad[],FILE *admin);
 void insert(TREE *pt,long long int acc_no,int cid,char name[],long long int ph,int bal,int load);
-ACC* searchI(TREE *pt,int ele);
+ACC* searchI(TREE *pt,long long int ele);
 void inorderTraversal(TREE *pt);
 void inorder(ACC *p);
 
@@ -80,10 +80,6 @@ int main()
             scanf("%d",&log);
             if(log==0)
             {
-
-            }
-            else if(log==1)
-            {
                 int choice,acc,cid;
                 printf("Please Enter Account Number: ");
                 scanf("%lld",&acc);
@@ -92,15 +88,49 @@ int main()
                 ACC *p=searchI(&tobj,acc);
                 if(p!=NULL)
                 {
-                    
+                    int choice,acc,cid;
+                    printf("Please Enter Account Number: ");
+                    scanf("%lld",&acc);
+                    printf("Please Enter Customer ID: ");
+                    scanf("%lld",&cid);
+                    ACC *p=searchI(&tobj,acc);
+                    if(p!=NULL)
+                    {
+                        if(cid==p->cust_id)
+                        {
+                            int op;
+                            printf("Welcome %s!\n",p->name);
+                            printf("1.See your details\n2.Transfer money\n3.Check Balance\n");
+                            printf("What would you like to do?: ");
+                            scanf("%d",&op);
+                            switch (op)
+                            {
+                            case 1:
+                                break;
+                            case 2:
+                                break;
+                            case 3:
+                                break;
+                            
+                            default:
+                                break;
+                            }
+                        
+                        }
+                    }
                 }
 
 
+            }
+            else if(log==1)
+            {
+                logout=1;
             }
             else
             {
                 printf("Please Enter Valid Option.\n");
             }
+
 
             
         } while (!logout);
@@ -110,7 +140,7 @@ int main()
     fclose(fp_cust);
     fclose(fp_trans);
 
-    //inorderTraversal(&tobj); //works
+    inorderTraversal(&tobj); //works
 }
 
 void tree_init(TREE *pt)
@@ -280,7 +310,7 @@ void insert(TREE *pt,long long int acc,int cid,char name[],long long int ph,int 
 	}	
 }
 
-ACC* searchI(TREE *pt,int ele)
+ACC* searchI(TREE *pt,long long int ele)
 {
 	ACC *p=pt->root;
 	
