@@ -7,7 +7,7 @@
 typedef struct transactions
 {
     int trans;
-    struct transaction *next;
+    struct transactions *next;
 
 }TRANS;
 
