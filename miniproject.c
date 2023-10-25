@@ -7,7 +7,7 @@
 typedef struct transactions
 {
     int trans;
-    struct transaction *next;
+    struct transactions *next;
 
 }TRANS;
 
@@ -39,7 +39,7 @@ typedef struct admin
 }ADMIN;
 
 void tree_init(TREE *pt);
-ACC* create_acc(long long int acc_no,int cid,char name[],long long int phone,int bal);//insert node is adding a new acc_no that time give bal=1000 explicitly
+ACC* create_acc(long long int acc_no,int cid,char name[],long long int phone,int bal);//insert node is adding a newNode acc_no that time give bal=1000 explicitly
 void display_details(ACC *p);//details without trans
 void load_cust_info(TREE *pt,FILE *cust);
 void load_trans_info(TREE *pt,FILE *trans);
@@ -149,21 +149,21 @@ ACC *searchI(TREE *pt, long long int ele)
     return NULL;
 }
 
-void add_transactions(ACC *account, int transa)
+void add_transactions(ACC *account, int amt)
 {
-    TRANS *new = malloc(sizeof(TRANS));
-    new->trans = transa;
-    new->next = NULL;
+    TRANS *newNode = malloc(sizeof(TRANS));
+    newNode->trans = amt;
+    newNode->next = NULL;
 
     if (account->head == NULL)
     {
-        account->head = new;
-        account->tail = new;
+        account->head = newNode;
+        account->tail = newNode;
     }
     else
     {
-        account->tail->next = new;
-        account->tail = new;
+        account->tail->next = newNode;
+        account->tail = newNode;
     }
 }
 
@@ -171,9 +171,10 @@ void load_trans_info(TREE *pt, FILE *trans)
 {
     // format - <account send from> <-ve amt>
     //          <amount send to> <+ve amt>
+    printf("hi");
     char buffer[1024];
     printf("hi");
-    int row;
+    int row = 0;
     while (fgets(buffer, 1024, trans)) // reads line
     {
         printf("hi");
@@ -239,7 +240,7 @@ void load_admin_info(ADMIN ad[], FILE *admin)
     // printf("HO");
 }
 
-// adding new acc_no give bal as 1000 in arg
+// adding newNode acc_no give bal as 1000 in arg
 void display_details(ACC *p)
 {
     printf("Account Number:%lld\n", p->acc_no);
@@ -261,7 +262,7 @@ void insert(TREE *pt, long long int acc, int cid, char name[], long long int ph,
     if (!load)
     {
         bal = 1000;
-        // for new acc condition
+        // for newNode acc condition
     }
     ACC *newacc = create_acc(acc, cid, name, ph, bal);
     if (pt->root == NULL)
@@ -326,10 +327,8 @@ int main()
         load_cust_info(&tobj,fp_cust);//wurks lessgoooo
         //load transaction too here
         load_admin_info(admin,fp_admin);//works!!
-        load_trans_info(&tobj, fp_trans);
-
-        inorderTraversal(&tobj);
+        //load_trans_info(&tobj, fp_trans);
     }
-    //inorderTraversal(&tobj); //works
+    inorderTraversal(&tobj); //works
     return 0;
 }
