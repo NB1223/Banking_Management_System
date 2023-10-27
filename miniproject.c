@@ -1,7 +1,7 @@
 //banking management system using Trees (BST)
 #include<stdio.h>
 #include<stdlib.h>
-#include<conio.h>
+//#include<conio.h>
 #include<string.h>
 
 typedef struct transactions
@@ -44,104 +44,11 @@ void display_details(ACC *p);//details without trans
 void load_cust_info(TREE *pt,FILE *cust);
 void load_trans_info(TREE *pt,FILE *trans);
 void load_admin_info(ADMIN ad[],FILE *admin);
+void add_transactions(ACC *account, int amt);
 void insert(TREE *pt,long long int acc_no,int cid,char name[],long long int ph,int bal,int load);
 ACC* searchI(TREE *pt,long long int ele);
 void inorderTraversal(TREE *pt);
 void inorder(ACC *p);
-
-int main()
-{
-    FILE* fp_cust = fopen("C:\\Users\\dprab\\Desktop\\nehacollege\\sem 3\\DSA\\Customer.csv", "r");
-    FILE* fp_trans = fopen("C:\\Users\\dprab\\Desktop\\nehacollege\\sem 3\\DSA\\transactions.csv", "r");
-    FILE* fp_admin = fopen("C:\\Users\\dprab\\Desktop\\nehacollege\\sem 3\\DSA\\Admin.csv", "r");
-    //getchar();
-    TREE tobj;
-    //memset(&tobj, 0, sizeof(TREE));
-    tree_init(&tobj);
-    ADMIN *admin=calloc(3,sizeof(ADMIN));
-    //ADMIN *admin=malloc(3*sizeof(ADMIN));
-
-
-
-    if ((!fp_cust)||(!fp_trans)||(!fp_admin))
-        printf("Can't open file\n");
-    else
-    {
-        printf("all files opened\n");
-        load_cust_info(&tobj,fp_cust);//wurks lessgoooo
-        //load transaction too here
-        load_admin_info(admin,fp_admin);//works!!
-        //selecting between admin or customer
-        int logout=0;
-        printf("Customer login(0) or Admin login(1)?: ");
-        do
-        {
-            int log;
-            scanf("%d",&log);
-            if(log==0)
-            {
-                int choice,acc,cid;
-                printf("Please Enter Account Number: ");
-                scanf("%lld",&acc);
-                printf("Please Enter Customer ID: ");
-                scanf("%lld",&cid);
-                ACC *p=searchI(&tobj,acc);
-                if(p!=NULL)
-                {
-                    int choice,acc,cid;
-                    printf("Please Enter Account Number: ");
-                    scanf("%lld",&acc);
-                    printf("Please Enter Customer ID: ");
-                    scanf("%lld",&cid);
-                    ACC *p=searchI(&tobj,acc);
-                    if(p!=NULL)
-                    {
-                        if(cid==p->cust_id)
-                        {
-                            int op;
-                            printf("Welcome %s!\n",p->name);
-                            printf("1.See your details\n2.Transfer money\n3.Check Balance\n");
-                            printf("What would you like to do?: ");
-                            scanf("%d",&op);
-                            switch (op)
-                            {
-                            case 1:
-                                break;
-                            case 2:
-                                break;
-                            case 3:
-                                break;
-                            
-                            default:
-                                break;
-                            }
-                        
-                        }
-                    }
-                }
-
-
-            }
-            else if(log==1)
-            {
-                logout=1;
-            }
-            else
-            {
-                printf("Please Enter Valid Option.\n");
-            }
-
-
-            
-        } while (!logout);
-        
-    }
-    fclose(fp_admin);
-    fclose(fp_cust);
-    fclose(fp_trans);
-
-    inorderTraversal(&tobj); //works
-}
 
 void tree_init(TREE *pt)
 {
@@ -226,7 +133,73 @@ void load_cust_info(TREE *pt,FILE *cust)
         }
 }
 
-void load_trans_info(TREE *pt,FILE *trans);
+void add_transactions(ACC *account, int amt)
+{
+    TRANS *newNode = malloc(sizeof(TRANS));
+    newNode->trans = amt;
+    newNode->next = NULL;
+
+   if (account->head == NULL)
+    {
+        account->head = newNode;
+        account->tail = newNode;
+    }
+    else
+    {
+        account->tail->next = newNode;
+        account->tail = newNode;
+    }
+}
+
+void make_transactions(TREE *pt, ACC *send_acc)
+{
+    int amt;
+    long long int r_acc;
+    printf("\nEnter Amount to be Transfered - "); scanf("%d", &amt);
+    printf("Enter Account number - "); scanf("%lld", &r_acc);
+
+    ACC *rec_acc = searchI(pt, r_acc);
+
+    add_transactions(send_acc, (-amt));
+    send_acc->balance -= amt;
+
+    if (rec_acc != NULL)
+    {
+        add_transactions(rec_acc, amt);
+        rec_acc->balance += amt;
+    }
+}
+
+void load_trans_info(TREE *pt, FILE *trans)
+{
+    // format - <account send from> <-ve amt>
+    //          <amount send to> <+ve amt>
+    char buffer[1024];
+    int row = 0;
+    while (fgets(buffer, 1024, trans)) // reads line
+    {
+        ACC *acc = NULL;
+        row = 0;
+        const char *value = strtok(buffer, ",");
+        while (value)
+        {
+                if (row == 0) // reads acc id
+                {
+                    long long int acc_no = atoll(value);
+                    acc = searchI(pt, acc_no);
+                    row++;
+                }
+                else // reads transactions
+                {
+                    int transa = atoi(value);
+                    add_transactions(acc, transa);
+                    row++;
+                }
+                value = strtok(NULL, ",");
+        }
+    }
+}
+
 void load_admin_info(ADMIN ad[],FILE *admin)
 {
     int row = -2,column;
@@ -268,17 +241,23 @@ void load_admin_info(ADMIN ad[],FILE *admin)
 }
 
 
-
 //adding new acc_no give bal as 1000 in arg
 void display_details(ACC *p)
 {
-    printf("Account Number:%lld\n",p->acc_no);
+    printf("\n\nAccount Number:%lld\n",p->acc_no);
     printf("Customer ID:%d\n",p->cust_id);
     printf("Customer Name:%s\n",p->name);
     printf("Phone No:%lld\n",p->phone);
-    printf("Balance:%d\n\n",p->balance);
+    printf("Balance:%d\n",p->balance);
+
+    TRANS *x;
+    printf("Transactions: ");
+    for (x = p->head; x != NULL; x = x->next)
+        printf("%d ", x->trans);
+    printf("\n");
 
 }
+
 void insert(TREE *pt,long long int acc,int cid,char name[],long long int ph,int bal,int load)
 {
 	
@@ -343,4 +322,99 @@ void inorderTraversal(TREE *pt)
 		printf("Empty Tree\n");
 }
 
+int main()
+{
+    FILE *fp_cust = fopen("Customer.csv", "r");
+    FILE *fp_trans = fopen("transactions.csv", "r");
+    FILE *fp_admin = fopen("Admin.csv", "r");
+    // getchar();
+    TREE tobj;
+    // memset(&tobj, 0, sizeof(TREE));
+    tree_init(&tobj);
+    ADMIN *admin = calloc(3, sizeof(ADMIN));
+    // ADMIN *admin=malloc(3*sizeof(ADMIN));
 
+    if ((!fp_cust) || (!fp_trans) || (!fp_admin))
+       return 0;
+
+        //printf("all files opened\n");
+        load_cust_info(&tobj, fp_cust); // wurks lessgoooo
+        load_trans_info(&tobj, fp_trans);
+        load_admin_info(admin, fp_admin); // works!!
+
+        fclose(fp_admin);
+        fclose(fp_cust);
+        fclose(fp_trans);
+        // selecting between admin or customer
+
+    while (1)
+    {
+        printf("\n\nCustomer login(0) or Admin login(1) or logout(-1)? : ");
+        int log_who;
+        scanf("%d", &log_who);
+        printf("\n\n");
+        int logout = 0;
+        if (log_who == 0)
+        {
+            int choice, cid;
+            int logout = 0;
+            long long int acc;
+            printf("Please Enter Account Number: ");
+            scanf("%lld", &acc);
+            printf("Please Enter Customer ID: ");
+            scanf("%d", &cid);
+            ACC *p = searchI(&tobj, acc);
+            if (p != NULL)
+            {
+                if (cid == p->cust_id)
+                {
+                    int op;
+                    printf("\n\t\t~~~~~~~~~~Welcome %s!~~~~~~~~~~", p->name);
+                    do
+                    {
+                        printf("\n\n1.See your details\n2.Transfer money\n3.Check Balance\n4.Logout\n");
+                        printf("What would you like to do?: ");
+                        scanf("%d", &op);
+                        printf("\t\t--------------------------------\n");
+                        switch (op)
+                        {
+                        case 1:
+                            display_details(p);
+                            break;
+                        case 2:
+                            make_transactions(&tobj, p);
+                            break;
+
+                        case 3:
+                            printf("\nBalance - %d", p->balance);
+                            break;
+
+                        default:
+                            logout = 1;
+                            break;
+                        }
+                        printf("\n\t\t--------------------------------\n");
+                    } while (!logout);
+                }
+            }
+            else
+            {
+                printf("Account Number is incorrect.");
+            }
+        }
+
+        else if (log_who == 1)
+        {
+
+        }
+
+        else if (log_who == -1)
+        {
+            break;
+        }
+        
+    }
+
+    //inorderTraversal(&tobj); // works
+    return 0;
+}
