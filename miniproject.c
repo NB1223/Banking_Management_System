@@ -38,9 +38,41 @@ typedef struct admin
 
 }ADMIN;
 
-void tree_init(TREE *pt);
-ACC* create_acc(long long int acc_no,int cid,char name[],long long int phone,int bal);//insert node is adding a new acc_no that time give bal=1000 explicitly
-void display_details(ACC *p);//details without trans
+void tree_init(TREE *pt)
+{
+    pt->root = NULL;
+}
+
+ACC* create_acc(long long int acc_no,int cid,char name[],long long int phone,int bal)//insert node is adding a new acc_no that time give bal=1000 explicitly
+{
+    ACC *newacc = malloc(sizeof(ACC));
+    newacc->acc_no = acc_no;
+    newacc->cust_id = cid;
+    strcpy(newacc->name, name);
+    newacc->phone = phone;
+    newacc->balance = bal;
+    newacc->head = NULL;
+    newacc->tail = NULL;
+    newacc->left = NULL;
+    newacc->right = NULL;
+    return newacc;
+}
+
+void display_details(ACC *p)//details without trans
+{
+    printf("\n\nAccount Number:%lld\n", p->acc_no);
+    printf("Customer ID:%d\n", p->cust_id);
+    printf("Customer Name:%s\n", p->name);
+    printf("Phone No:%lld\n", p->phone);
+    printf("Balance:%d\n", p->balance);
+
+    TRANS *x;
+    printf("Transactions: ");
+    for (x = p->head; x != NULL; x = x->next)
+        printf("%d ", x->trans);
+    printf("\n");
+}
+
 void load_cust_info(TREE *pt,FILE *cust);
 void load_trans_info(TREE *pt,FILE *trans);
 void load_admin_info(ADMIN ad[],FILE *admin);
@@ -49,27 +81,6 @@ void insert(TREE *pt,long long int acc_no,int cid,char name[],long long int ph,i
 ACC* searchI(TREE *pt,long long int ele);
 void inorderTraversal(TREE *pt);
 void inorder(ACC *p);
-
-void tree_init(TREE *pt)
-{
-    pt->root=NULL;
-}
-
-ACC* create_acc(long long int acc_no,int cid,char name[],long long int phone,int bal)
-{
-    ACC* newacc=malloc(sizeof(ACC));
-    newacc->acc_no=acc_no;
-    newacc->cust_id=cid;
-    strcpy(newacc->name,name);
-    newacc->phone=phone;
-    newacc->balance=bal;
-    newacc->head=NULL;
-    newacc->tail=NULL;
-    newacc->left=NULL;
-    newacc->right=NULL;
-    return newacc;
-
-}
 
 void load_cust_info(TREE *pt,FILE *cust)
 {
@@ -242,21 +253,6 @@ void load_admin_info(ADMIN ad[],FILE *admin)
 
 
 //adding new acc_no give bal as 1000 in arg
-void display_details(ACC *p)
-{
-    printf("\n\nAccount Number:%lld\n",p->acc_no);
-    printf("Customer ID:%d\n",p->cust_id);
-    printf("Customer Name:%s\n",p->name);
-    printf("Phone No:%lld\n",p->phone);
-    printf("Balance:%d\n",p->balance);
-
-    TRANS *x;
-    printf("Transactions: ");
-    for (x = p->head; x != NULL; x = x->next)
-        printf("%d ", x->trans);
-    printf("\n");
-
-}
 
 void insert(TREE *pt,long long int acc,int cid,char name[],long long int ph,int bal,int load)
 {
@@ -320,6 +316,45 @@ void inorderTraversal(TREE *pt)
 		inorder(pt->root);
 	else
 		printf("Empty Tree\n");
+}
+
+void write_cust(ACC* account, FILE *fp_cust)
+{
+    if (account == NULL)
+        return;
+
+    fprintf(fp_cust, "%lld, %d,%s, %lld, %d\n", account->acc_no, account->cust_id, account->name, account->phone, account->balance);
+    write_cust(account->left, fp_cust);
+    write_cust(account->right, fp_cust);
+}
+
+void write_trans(ACC *account, FILE *fp_trans)
+{
+    if (account == NULL )
+        return;
+
+    fprintf(fp_trans, "%lld", account->acc_no);
+
+    TRANS* x;
+    for (x = account->head; x != NULL; x = x->next)
+        fprintf(fp_trans, ", %d", x->trans);
+    fprintf(fp_trans, "\n");
+    write_trans(account->left, fp_trans);
+    write_trans(account->right, fp_trans);
+}
+
+void write(TREE *pt)
+{
+    FILE *fp_cust = fopen("Customer.csv", "w");
+    FILE *fp_trans = fopen("transactions.csv", "w");
+
+    fprintf(fp_cust, "Account Number, Customer ID, Name, Phone, Balance\n");
+    write_cust(pt->root, fp_cust);
+
+    write_trans(pt->root, fp_trans);
+
+    fclose(fp_cust);
+    fclose(fp_trans);
 }
 
 int main()
@@ -416,5 +451,10 @@ int main()
     }
 
     //inorderTraversal(&tobj); // works
+    write(&tobj);
     return 0;
 }
+
+// transactions
+// updating
+// loading
