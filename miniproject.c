@@ -169,6 +169,11 @@ void make_transactions(TREE *pt, ACC *send_acc)
     printf("\nEnter Amount to be Transfered - "); scanf("%d", &amt);
     printf("Enter Account number - "); scanf("%lld", &r_acc);
 
+    if (amt < 0 || amt > send_acc->balance)
+    {
+        printf("--Transaction Invalid--\n");
+        return;
+    }
     ACC *rec_acc = searchI(pt, r_acc);
 
     add_transactions(send_acc, (-amt));
