@@ -184,6 +184,9 @@ void make_transactions(TREE *pt, ACC *send_acc)
         add_transactions(rec_acc, amt);
         rec_acc->balance += amt;
     }
+
+    printf("Transaction Completed\n");
+    printf("%d send to %lld", amt, r_acc);
 }
 
 void load_trans_info(TREE *pt, FILE *trans)
@@ -389,7 +392,7 @@ int main()
 
     while (1)
     {
-        printf("\n\nCustomer login(0) or Admin login(1) or logout(-1)? : ");
+        printf("\n\nCustomer login(0) or Admin login(1) or Customer Signup(2) or logout(-1)? : ");
         int log_who;
         scanf("%d", &log_who);
         printf("\n\n");
@@ -412,7 +415,7 @@ int main()
                     printf("\n\t\t~~~~~~~~~~Welcome %s!~~~~~~~~~~", p->name);
                     do
                     {
-                        printf("\n\n1.See your details\n2.Transfer money\n3.Check Balance\n4.Logout\n");
+                        printf("\n\n1.See your details\n2.Transfer money\n3.Check Balance\n4.Delete Account\n5.Logout\n");
                         printf("What would you like to do?: ");
                         scanf("%d", &op);
                         printf("\t\t--------------------------------\n");
@@ -428,6 +431,11 @@ int main()
                         case 3:
                             printf("\nBalance - %d", p->balance);
                             break;
+
+                        case 4:
+                            printf("Deleting Acoount ......\n");
+                            // nishta's delete account
+                            printf("Deleted \nlOGINING OUT ");
 
                         default:
                             logout = 1;
@@ -445,8 +453,14 @@ int main()
 
         else if (log_who == 1)
         {
-
+            //neha's code
         }
+
+        else if (log_who == 2)
+        {
+            // nishta's create account
+        }
+        
 
         else if (log_who == -1)
         {
