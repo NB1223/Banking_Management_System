@@ -144,6 +144,90 @@ void load_cust_info(TREE *pt,FILE *cust)
         }
 }
 
+void add_cust(TREE *pt,FILE *fp_cust)
+{
+    char name[20];
+    long long int n1,lan=10000000000,uan=9999999999,phone;
+    int n2,lci=1000000,uci=9999999,bal=1000;
+    
+    printf("\nYour Account Number:\n");
+    n1=(rand()%(uan-lan+1)+lan);
+    printf("%d\n",n1);
+    
+    printf("\nCustomer ID:\n");
+    n2=(rand()%(uci-lci+1)+lci);
+    printf("%d\n",n2);
+
+    printf("\nEnter Account Holder Name:\n");
+    scanf("%s",&name);
+    printf("\nEnter Mobile Number:\n");
+    scanf("%lld",&phone);
+
+    printf("\nYour Account Balance\n");
+    printf("%d\n",bal);
+	ACC *newacc=create_acc(n1,n2,name,phone,bal);
+    
+    if(pt->root==NULL)
+		pt->root=newacc;
+	else
+	{
+		ACC *p=pt->root;
+		ACC *q=NULL;
+		
+		while(p!=NULL)
+		{
+			q=p;
+			if(newacc->acc_no < p->acc_no)
+				p=p->left;
+			else
+				p=p->right;
+		}
+		if(newacc->acc_no < q->acc_no)
+			q->left=newacc;
+		else
+			q->right=newacc;
+	}	
+    printf("\nAccount created successfully\n");
+    printf("\nYOUR ACCOUNT NUMBER:%d",n1);
+    printf("\nCustomer ID:%d",n2);
+
+}
+ACC* deleteR(ACC *p,long long int acc_no)
+{
+	ACC *q=NULL;
+	if(p==NULL)
+		return p;
+	if(acc_no < p->acc_no)
+		p->left=deleteR(p->left,acc_no);
+	else if(acc_no > p->acc_no)
+		p->right=deleteR(p->right,acc_no);
+	else if(p->left == NULL)	//Single right child or leaf ACC case
+	{
+		q=p->right;
+		free(p);
+		return q;
+	}
+	else if(p->right==NULL)	//Single left child case
+	{
+		q=p->left;
+		free(p);
+		return q;
+	}
+	else	//ACC with 2 children, Replace with inorder successor
+	{
+		q=p->right;
+		while(q->left!=NULL)
+			q=q->left;
+		
+		p->acc_no=q->acc_no;
+		p->right=deleteR(p->right,q->acc_no);
+	}
+	return p;
+}
+void deleteACC(TREE *pt,long long int ele)
+{
+	pt->root=deleteR(pt->root,ele);
+}
 void add_transactions(ACC *account, int amt)
 {
     TRANS *newNode = malloc(sizeof(TRANS));
@@ -435,6 +519,7 @@ int main()
                         case 4:
                             printf("Deleting Acoount ......\n");
                             // nishta's delete account
+				deleteACC(&tobj,acc);
                             printf("Deleted \nlOGINING OUT ");
 
                         default:
@@ -459,6 +544,7 @@ int main()
         else if (log_who == 2)
         {
             // nishta's create account
+		add_cust(&tobj,fp_cust);
         }
         
 
