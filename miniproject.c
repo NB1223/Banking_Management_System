@@ -147,7 +147,7 @@ void load_cust_info(TREE *pt,FILE *cust)
 void add_cust(TREE *pt,FILE *fp_cust)
 {
     char name[20];
-    long long int n1,lan=10000000000,uan=9999999999,phone;
+    long long int n1,lan=10000000000,uan=99999999999,phone;
     int n2,lci=1000000,uci=9999999,bal=1000;
     
     printf("\nYour Account Number:\n");
