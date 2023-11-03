@@ -143,30 +143,42 @@ void load_cust_info(TREE *pt,FILE *cust)
             }
         }
 }
-
 void add_cust(TREE *pt,FILE *fp_cust)
 {
     char name[20];
-    long long int n1,lan=10000000000,uan=99999999999,phone;
+    long long int phone=0,n1,lan=10000000000,uan=99999999999;
     int n2,lci=1000000,uci=9999999,bal=1000;
     
+    printf("\nEnter Account Holder Name:\n");
+    scanf("%s",&name);
+
+    printf("Enter a phone number\n");
+    scanf("%lld",&phone);
+    while( phone<7000000000 || phone>9999999999)
+    {
+        printf("\nInvalid Phone number\n");
+        printf("Enter a valid number\n");
+        scanf("%lld",&phone);    
+    }
+    
+    printf("\nEnter amount to be deposited\n");
+    scanf("%d",&bal);
+    while(bal<1000)
+    {
+        printf("Minimum amount is Rs 1000\n");
+        printf("Enter a valid amount\n");
+        scanf("%d",&bal);
+    }
+	
     printf("\nYour Account Number:\n");
     n1=(rand()%(uan-lan+1)+lan);
-    printf("%d\n",n1);
+    printf("%lld\n",n1);
     
     printf("\nCustomer ID:\n");
     n2=(rand()%(uci-lci+1)+lci);
     printf("%d\n",n2);
 
-    printf("\nEnter Account Holder Name:\n");
-    scanf("%s",&name);
-    printf("\nEnter Mobile Number:\n");
-    scanf("%lld",&phone);
-
-    printf("\nYour Account Balance\n");
-    printf("%d\n",bal);
-	ACC *newacc=create_acc(n1,n2,name,phone,bal);
-    
+    ACC *newacc=create_acc(n1,n2,name,phone,bal);
     if(pt->root==NULL)
 		pt->root=newacc;
 	else
@@ -188,8 +200,8 @@ void add_cust(TREE *pt,FILE *fp_cust)
 			q->right=newacc;
 	}	
     printf("\nAccount created successfully\n");
-    printf("\nYOUR ACCOUNT NUMBER:%d",n1);
-    printf("\nCustomer ID:%d",n2);
+    // printf("\nYOUR ACCOUNT NUMBER:%d",n1);
+    // printf("\nCustomer ID:%d",n2);
 
 }
 ACC* deleteR(ACC *p,long long int acc_no)
