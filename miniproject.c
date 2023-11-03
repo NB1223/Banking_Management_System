@@ -58,6 +58,33 @@ ACC* create_acc(long long int acc_no,int cid,char name[],long long int phone,int
     return newacc;
 }
 
+void destroy(ACC *p)
+{
+	
+
+    //makes accounts free
+    if(p!=NULL)
+	{
+
+		destroy(p->left);
+		destroy(p->right);
+        //makes tranactions free
+        TRANS *x;
+        for(x=p->head;p->head!=NULL;)
+	    {
+	    	p->head=p->head->next;
+	    	free(x);
+	    	x=p->head;
+	    }
+		free(p);
+	}
+}
+void destroyTree(TREE *pt)
+{
+	if(pt->root!=NULL)
+		destroy(pt->root);
+}
+
 void display_details(ACC *p)//details without trans
 {
     printf("\n\nAccount Number:%lld\n", p->acc_no);
@@ -148,33 +175,34 @@ void add_cust(TREE *pt,FILE *fp_cust)
     char name[20];
     long long int phone=0,n1,lan=10000000000,uan=99999999999;
     int n2,lci=1000000,uci=9999999,bal=1000;
-    
-    printf("\nEnter Account Holder Name:\n");
+    printf("\t\t...........................................\n\n");
+    printf("Enter Account Holder Name: ");
     scanf("%s",&name);
 
-    printf("Enter a phone number\n");
+    printf("Enter a phone number: ");
     scanf("%lld",&phone);
     while( phone<7000000000 || phone>9999999999)
     {
-        printf("\nInvalid Phone number\n");
-        printf("Enter a valid number\n");
-        scanf("%lld",&phone);    
+        printf("--Invalid Phone number--\n");
+        printf("Enter a valid number: ");
+        scanf("%lld",&phone); 
+        printf("\n");   
     }
     
-    printf("\nEnter amount to be deposited\n");
+    printf("Enter amount to be deposited: ");
     scanf("%d",&bal);
     while(bal<1000)
     {
-        printf("Minimum amount is Rs 1000\n");
-        printf("Enter a valid amount\n");
+        printf("\t\tMinimum amount is Rs 1000\n");
+        printf("Enter a valid amount: ");
         scanf("%d",&bal);
     }
 	
-    printf("\nYour Account Number:\n");
+    printf("\t\tYour Account Number: ");
     n1=(rand()%(uan-lan+1)+lan);
     printf("%lld\n",n1);
     
-    printf("\nCustomer ID:\n");
+    printf("\t\tCustomer ID: ");
     n2=(rand()%(uci-lci+1)+lci);
     printf("%d\n",n2);
 
@@ -199,7 +227,8 @@ void add_cust(TREE *pt,FILE *fp_cust)
 		else
 			q->right=newacc;
 	}	
-    printf("\nAccount created successfully\n");
+    printf("\n\t\tAccount created successfully\n");
+    printf("\t\t...........................................\n");
     // printf("\nYOUR ACCOUNT NUMBER:%d",n1);
     // printf("\nCustomer ID:%d",n2);
 
@@ -256,6 +285,22 @@ void add_transactions(ACC *account, int amt)
         account->tail->next = newNode;
         account->tail = newNode;
     }
+}
+// -------   _____________  =================  *************** 
+// <<<<<<<<<<<<<<<  >>>>>>>>>>>>>>>>>>>>  ~~~~~~~~~~~ .....................
+void phone_update(ACC *acc)
+{
+    long long int new_ph;
+    printf("Please enter your new Phone No. :");
+    scanf("%lld",&new_ph);
+    while( new_ph<7000000000 || new_ph>9999999999)
+    {
+        printf("\nInvalid Phone number\n");
+        printf("Please enter your new Phone No. :");
+        scanf("%lld",&new_ph);    
+    }
+    acc->phone=new_ph;
+    printf("---Phone number updated---");
 }
 
 void make_transactions(TREE *pt, ACC *send_acc)
@@ -511,7 +556,7 @@ int main()
                     printf("\n\t\t~~~~~~~~~~Welcome %s!~~~~~~~~~~", p->name);
                     do
                     {
-                        printf("\n\n1.See your details\n2.Transfer money\n3.Check Balance\n4.Delete Account\n5.Logout\n");
+                        printf("\n\n1.See your details\n2.Transfer money\n3.Check Balance\n4.Delete Account\n5.Update Ph. Number\n6.Logout\n");
                         printf("What would you like to do?: ");
                         scanf("%d", &op);
                         printf("\t\t--------------------------------\n");
@@ -531,8 +576,14 @@ int main()
                         case 4:
                             printf("Deleting Acoount ......\n");
                             // nishta's delete account
-				deleteACC(&tobj,acc);
-                            printf("Deleted \nlOGINING OUT ");
+				            deleteACC(&tobj,acc);
+                            printf("Deleted \nLOGINING OUT ");
+                            logout=1;
+                            break;
+
+                        case 5:
+                            phone_update(p);
+                            break;
 
                         default:
                             logout = 1;
@@ -550,13 +601,59 @@ int main()
 
         else if (log_who == 1)
         {
-            //neha's code
+            //nishta not working
+            int incorrect=1,log=0;
+            char a_id[7];
+            char a_name[10];
+            printf("Please enter Name: ");
+            scanf("%s", a_name);
+            printf("Please Enter Admin ID: ");
+            scanf("%s", a_id);
+            //printf("%s %s\n",a_id,a_name);
+            int i;
+            ADMIN *p=admin;
+            for(i=0;i<3;i++)
+            {
+                //printf("%s\n",p[i].ad_id);
+                if(!strcmp(p[i].ad_id,a_id))
+                {
+                    
+                    //printf("id okay\n");
+                    if (!strcmp(p[i].ad_name,a_name))
+                    {
+                        //printf("name okay\n");
+                        incorrect=0;
+                        break;
+                    }
+                    else
+                    {
+                        printf("Incorrect Admin Name\n");
+                    }
+                }
+                
+            }
+            if(incorrect==1)
+            {
+                printf("Incorrect Admin ID\n");
+            }
+            else
+            {
+                printf("\n\t\t~~~~~~~~~~Welcome %s!~~~~~~~~~~\n", p[i].ad_name);
+                do
+                {
+                    printf("Here are all the Customer Details: \n");
+                    inorderTraversal(&tobj);
+                    printf("logout?(1): ");
+                    scanf("%d",&log);
+                }while (!log);
+                printf("\n\t\t--------------------------------\n");
+            }
         }
 
         else if (log_who == 2)
         {
             // nishta's create account
-		add_cust(&tobj,fp_cust);
+		    add_cust(&tobj,fp_cust);
         }
         
 
@@ -569,6 +666,9 @@ int main()
 
     //inorderTraversal(&tobj); // works
     write(&tobj);
+    //printf("A-okay");
+    destroyTree(&tobj);
+    //printf("A-okay");
     return 0;
 }
 
