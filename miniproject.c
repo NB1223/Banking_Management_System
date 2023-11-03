@@ -1,7 +1,6 @@
 //banking management system using Trees (BST)
 #include<stdio.h>
 #include<stdlib.h>
-//#include<conio.h>
 #include<string.h>
 
 typedef struct transactions
@@ -16,7 +15,8 @@ typedef struct account
     long long int acc_no;
     int cust_id;
     int balance;
-    char name[20];
+    char fname[20];
+    char lname[20];
     long long int phone;
     TRANS *head;
     TRANS *tail;
@@ -38,17 +38,33 @@ typedef struct admin
 
 }ADMIN;
 
+void tree_init(TREE *pt);
+void load_cust_info(TREE *pt,FILE *cust);
+void load_trans_info(TREE *pt,FILE *trans);
+void load_admin_info(ADMIN ad[],FILE *admin);
+void add_transactions(ACC *account, int amt);
+void insert(TREE *pt,long long int acc_no,int cid,char fname[],char lname[],long long int ph,int bal);
+ACC* search(TREE *pt,long long int ele);
+void inorderTraversal(TREE *pt);
+void inorder(ACC *p);
+void display_details(ACC *p);
+ACC* create_acc(long long int acc_no,int cid,char fname[],char lname[],long long int phone,int bal);
+void destroy(ACC *p);
+void destroyTree(TREE *pt);
+
+
 void tree_init(TREE *pt)
 {
     pt->root = NULL;
 }
 
-ACC* create_acc(long long int acc_no,int cid,char name[],long long int phone,int bal)//insert node is adding a new acc_no that time give bal=1000 explicitly
+ACC* create_acc(long long int acc_no,int cid,char fname[],char lname[],long long int phone,int bal)
 {
     ACC *newacc = malloc(sizeof(ACC));
     newacc->acc_no = acc_no;
     newacc->cust_id = cid;
-    strcpy(newacc->name, name);
+    strcpy(newacc->fname, fname);
+    strcpy(newacc->lname, lname);
     newacc->phone = phone;
     newacc->balance = bal;
     newacc->head = NULL;
@@ -58,38 +74,11 @@ ACC* create_acc(long long int acc_no,int cid,char name[],long long int phone,int
     return newacc;
 }
 
-void destroy(ACC *p)
-{
-	
-
-    //makes accounts free
-    if(p!=NULL)
-	{
-
-		destroy(p->left);
-		destroy(p->right);
-        //makes tranactions free
-        TRANS *x;
-        for(x=p->head;p->head!=NULL;)
-	    {
-	    	p->head=p->head->next;
-	    	free(x);
-	    	x=p->head;
-	    }
-		free(p);
-	}
-}
-void destroyTree(TREE *pt)
-{
-	if(pt->root!=NULL)
-		destroy(pt->root);
-}
-
-void display_details(ACC *p)//details without trans
+void display_details(ACC *p)
 {
     printf("\n\nAccount Number:%lld\n", p->acc_no);
     printf("Customer ID:%d\n", p->cust_id);
-    printf("Customer Name:%s\n", p->name);
+    printf("Customer Name:%s %s\n", p->fname,p->lname);
     printf("Phone No:%lld\n", p->phone);
     printf("Balance:%d\n", p->balance);
 
@@ -100,19 +89,10 @@ void display_details(ACC *p)//details without trans
     printf("\n");
 }
 
-void load_cust_info(TREE *pt,FILE *cust);
-void load_trans_info(TREE *pt,FILE *trans);
-void load_admin_info(ADMIN ad[],FILE *admin);
-void add_transactions(ACC *account, int amt);
-void insert(TREE *pt,long long int acc_no,int cid,char name[],long long int ph,int bal,int load);
-ACC* searchI(TREE *pt,long long int ele);
-void inorderTraversal(TREE *pt);
-void inorder(ACC *p);
-
 void load_cust_info(TREE *pt,FILE *cust)
 {
     int row = 0,column;
-    char buffer[1024],name[20];
+    char buffer[1024],fname[20],lname[20];
     int cid,balance;
     long long int acc_no,ph;
 
@@ -144,27 +124,34 @@ void load_cust_info(TREE *pt,FILE *cust)
                     column++;
                 }
  
-                // name
+                // first name
                 if (column == 2) {
-                    strcpy(name,value);
+                    strcpy(fname,value);
+                    value = strtok(NULL, ",");
+                    column++;
+                }
+
+                // last name
+                if (column == 3) {
+                    strcpy(lname,value);
                     value = strtok(NULL, ",");
                     column++;
                 }
 
                 //Phone
-                if (column == 3) {
+                if (column == 4) {
                     ph=atoll(value);
                     value = strtok(NULL, ",");
                     column++;
                 }
 
                 //balance
-                if (column == 4) {
+                if (column == 5) {
                     balance=atoi(value);
                     value = strtok(NULL, ",");
                 }
  
-                insert(pt,acc_no,cid,name,ph,balance,1);
+                insert(pt,acc_no,cid,fname,lname,ph,balance);
                 
                 
             }
@@ -172,12 +159,14 @@ void load_cust_info(TREE *pt,FILE *cust)
 }
 void add_cust(TREE *pt,FILE *fp_cust)
 {
-    char name[20];
+    char fname[20],lname[20];
     long long int phone=0,n1,lan=10000000000,uan=99999999999;
     int n2,lci=1000000,uci=9999999,bal=1000;
     printf("\t\t...........................................\n\n");
-    printf("Enter Account Holder Name: ");
-    scanf("%s",&name);
+    printf("Enter First Name: ");
+    scanf("%s",&fname);
+    printf("Enter Last Name: ");
+    scanf("%s",&lname);
 
     printf("Enter a phone number: ");
     scanf("%lld",&phone);
@@ -199,34 +188,21 @@ void add_cust(TREE *pt,FILE *fp_cust)
     }
 	
     printf("\t\tYour Account Number: ");
-    n1=(rand()%(uan-lan+1)+lan);
+    do
+    {
+       n1=(rand()%(uan-lan+1)+lan);
+
+    } while (search(pt,n1));
+    
+    //n1=(rand()%(uan-lan+1)+lan);
     printf("%lld\n",n1);
     
     printf("\t\tCustomer ID: ");
     n2=(rand()%(uci-lci+1)+lci);
     printf("%d\n",n2);
 
-    ACC *newacc=create_acc(n1,n2,name,phone,bal);
-    if(pt->root==NULL)
-		pt->root=newacc;
-	else
-	{
-		ACC *p=pt->root;
-		ACC *q=NULL;
-		
-		while(p!=NULL)
-		{
-			q=p;
-			if(newacc->acc_no < p->acc_no)
-				p=p->left;
-			else
-				p=p->right;
-		}
-		if(newacc->acc_no < q->acc_no)
-			q->left=newacc;
-		else
-			q->right=newacc;
-	}	
+    insert(pt,n1,n2,fname,lname,phone,bal);
+
     printf("\n\t\tAccount created successfully\n");
     printf("\t\t...........................................\n");
     // printf("\nYOUR ACCOUNT NUMBER:%d",n1);
@@ -286,8 +262,7 @@ void add_transactions(ACC *account, int amt)
         account->tail = newNode;
     }
 }
-// -------   _____________  =================  *************** 
-// <<<<<<<<<<<<<<<  >>>>>>>>>>>>>>>>>>>>  ~~~~~~~~~~~ .....................
+
 void phone_update(ACC *acc)
 {
     long long int new_ph;
@@ -315,7 +290,7 @@ void make_transactions(TREE *pt, ACC *send_acc)
         printf("--Transaction Invalid--\n");
         return;
     }
-    ACC *rec_acc = searchI(pt, r_acc);
+    ACC *rec_acc = search(pt, r_acc);
 
     add_transactions(send_acc, (-amt));
     send_acc->balance -= amt;
@@ -346,7 +321,7 @@ void load_trans_info(TREE *pt, FILE *trans)
                 if (row == 0) // reads acc id
                 {
                     long long int acc_no = atoll(value);
-                    acc = searchI(pt, acc_no);
+                    acc = search(pt, acc_no);
                     row++;
                 }
                 else // reads transactions
@@ -390,6 +365,7 @@ void load_admin_info(ADMIN ad[],FILE *admin)
                 // admin id
                 if (column == 1) {
                     strcpy(ad[row].ad_id,value);
+                    ad[row].ad_id[strlen(ad[row].ad_id)-1]='\0';
                     value = strtok(NULL, ",");
                     column++;
                 }  
@@ -403,15 +379,10 @@ void load_admin_info(ADMIN ad[],FILE *admin)
 
 //adding new acc_no give bal as 1000 in arg
 
-void insert(TREE *pt,long long int acc,int cid,char name[],long long int ph,int bal,int load)
+void insert(TREE *pt,long long int acc,int cid,char fname[],char lname[],long long int ph,int bal)
 {
 	
-    if (!load)
-    {
-        bal=1000;
-        //for new acc condition
-    }
-    ACC *newacc=create_acc(acc,cid,name,ph,bal);
+    ACC *newacc=create_acc(acc,cid,fname,lname,ph,bal);
 	if(pt->root==NULL)
 		pt->root=newacc;
 	else
@@ -434,7 +405,7 @@ void insert(TREE *pt,long long int acc,int cid,char name[],long long int ph,int 
 	}	
 }
 
-ACC* searchI(TREE *pt,long long int ele)
+ACC* search(TREE *pt,long long int ele)
 {
 	ACC *p=pt->root;
 	
@@ -472,7 +443,7 @@ void write_cust(ACC* account, FILE *fp_cust)
     if (account == NULL)
         return;
 
-    fprintf(fp_cust, "%lld, %d,%s, %lld, %d\n", account->acc_no, account->cust_id, account->name, account->phone, account->balance);
+    fprintf(fp_cust, "%lld, %d,%s,%s, %lld, %d\n", account->acc_no, account->cust_id, account->fname,account->lname, account->phone, account->balance);
     write_cust(account->left, fp_cust);
     write_cust(account->right, fp_cust);
 }
@@ -497,13 +468,40 @@ void write(TREE *pt)
     FILE *fp_cust = fopen("Customer.csv", "w");
     FILE *fp_trans = fopen("transactions.csv", "w");
 
-    fprintf(fp_cust, "Account Number, Customer ID, Name, Phone, Balance\n");
+    fprintf(fp_cust, "Account Number, Customer ID, First_Name,Last_Name, Phone, Balance\n");
     write_cust(pt->root, fp_cust);
 
     write_trans(pt->root, fp_trans);
 
     fclose(fp_cust);
     fclose(fp_trans);
+}
+
+void destroy(ACC *p)
+{
+	
+
+    //makes accounts free
+    if(p!=NULL)
+	{
+
+		destroy(p->left);
+		destroy(p->right);
+        //makes tranactions free
+        TRANS *x;
+        for(x=p->head;p->head!=NULL;)
+	    {
+	    	p->head=p->head->next;
+	    	free(x);
+	    	x=p->head;
+	    }
+		free(p);
+	}
+}
+void destroyTree(TREE *pt)
+{
+	if(pt->root!=NULL)
+		destroy(pt->root);
 }
 
 int main()
@@ -522,13 +520,13 @@ int main()
        return 0;
 
         //printf("all files opened\n");
-        load_cust_info(&tobj, fp_cust); // wurks lessgoooo
-        load_trans_info(&tobj, fp_trans);
-        load_admin_info(admin, fp_admin); // works!!
+    load_cust_info(&tobj, fp_cust); // wurks lessgoooo
+    load_trans_info(&tobj, fp_trans);
+    load_admin_info(admin, fp_admin); // works!!
 
-        fclose(fp_admin);
-        fclose(fp_cust);
-        fclose(fp_trans);
+    fclose(fp_admin);
+    fclose(fp_cust);
+    fclose(fp_trans);
         // selecting between admin or customer
 
     while (1)
@@ -547,13 +545,13 @@ int main()
             scanf("%lld", &acc);
             printf("Please Enter Customer ID: ");
             scanf("%d", &cid);
-            ACC *p = searchI(&tobj, acc);
+            ACC *p = search(&tobj, acc);
             if (p != NULL)
             {
                 if (cid == p->cust_id)
                 {
                     int op;
-                    printf("\n\t\t~~~~~~~~~~Welcome %s!~~~~~~~~~~", p->name);
+                    printf("\n\t\t~~~~~~~~~~Welcome %s %s!~~~~~~~~~~", p->fname,p->lname);
                     do
                     {
                         printf("\n\n1.See your details\n2.Transfer money\n3.Check Balance\n4.Delete Account\n5.Update Ph. Number\n6.Logout\n");
@@ -614,7 +612,7 @@ int main()
             ADMIN *p=admin;
             for(i=0;i<3;i++)
             {
-                //printf("%s\n",p[i].ad_id);
+                //printf("%s\n---",p[i].ad_id);
                 if(!strcmp(p[i].ad_id,a_id))
                 {
                     
@@ -638,15 +636,15 @@ int main()
             }
             else
             {
-                printf("\n\t\t~~~~~~~~~~Welcome %s!~~~~~~~~~~\n", p[i].ad_name);
+                printf("\n\t<<<<<<<<<<<<<<<<  Welcome %s!  >>>>>>>>>>>>>>>>\n", p[i].ad_name);
                 do
                 {
-                    printf("Here are all the Customer Details: \n");
+                    printf("\t\tHere are all the Customer Details: \n");
                     inorderTraversal(&tobj);
                     printf("logout?(1): ");
                     scanf("%d",&log);
                 }while (!log);
-                printf("\n\t\t--------------------------------\n");
+                printf("\n\t\t=========================================\n");
             }
         }
 
