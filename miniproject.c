@@ -5,10 +5,11 @@
 
 typedef struct transactions
 {
+    long long int acc_no;
     int trans;
     struct transactions *next;
 
-}TRANS;
+} TRANS;
 
 typedef struct account
 {
@@ -42,7 +43,7 @@ void tree_init(TREE *pt);
 void load_cust_info(TREE *pt,FILE *cust);
 void load_trans_info(TREE *pt,FILE *trans);
 void load_admin_info(ADMIN ad[],FILE *admin);
-void add_transactions(ACC *account, int amt);
+void add_transactions(ACC *self_account, long long int other_account, int amt);
 void insert(TREE *pt,long long int acc_no,int cid,char fname[],char lname[],long long int ph,int bal);
 ACC* search(TREE *pt,long long int ele);
 void inorderTraversal(TREE *pt);
@@ -83,9 +84,9 @@ void display_details(ACC *p)
     printf("Balance:%d\n", p->balance);
 
     TRANS *x;
-    printf("Transactions: ");
+    printf("Transactions: \n");
     for (x = p->head; x != NULL; x = x->next)
-        printf("%d ", x->trans);
+        printf("\t %lld -> %d ", x->acc_no, x->trans);
     printf("\n");
 }
 
@@ -157,6 +158,7 @@ void load_cust_info(TREE *pt,FILE *cust)
             }
         }
 }
+
 void add_cust(TREE *pt,FILE *fp_cust)
 {
     char fname[20],lname[20];
@@ -164,9 +166,9 @@ void add_cust(TREE *pt,FILE *fp_cust)
     int n2,lci=1000000,uci=9999999,bal=1000;
     printf("\t\t...........................................\n\n");
     printf("Enter First Name: ");
-    scanf("%s",&fname);
+    scanf("%s",fname);
     printf("Enter Last Name: ");
-    scanf("%s",&lname);
+    scanf("%s",lname);
 
     printf("Enter a phone number: ");
     scanf("%lld",&phone);
@@ -209,6 +211,7 @@ void add_cust(TREE *pt,FILE *fp_cust)
     // printf("\nCustomer ID:%d",n2);
 
 }
+
 ACC* deleteR(ACC *p,long long int acc_no)
 {
 	ACC *q=NULL;
@@ -241,25 +244,28 @@ ACC* deleteR(ACC *p,long long int acc_no)
 	}
 	return p;
 }
+
 void deleteACC(TREE *pt,long long int ele)
 {
 	pt->root=deleteR(pt->root,ele);
 }
-void add_transactions(ACC *account, int amt)
+
+void add_transactions(ACC *self_account, long long int other_account, int amt)
 {
     TRANS *newNode = malloc(sizeof(TRANS));
+    newNode->acc_no = other_account;
     newNode->trans = amt;
     newNode->next = NULL;
 
-   if (account->head == NULL)
+    if (self_account->head == NULL)
     {
-        account->head = newNode;
-        account->tail = newNode;
+        self_account->head = newNode;
+        self_account->tail = newNode;
     }
     else
     {
-        account->tail->next = newNode;
-        account->tail = newNode;
+        self_account->tail->next = newNode;
+        self_account->tail = newNode;
     }
 }
 
@@ -292,12 +298,12 @@ void make_transactions(TREE *pt, ACC *send_acc)
     }
     ACC *rec_acc = search(pt, r_acc);
 
-    add_transactions(send_acc, (-amt));
+    add_transactions(send_acc, rec_acc->acc_no, (-amt));
     send_acc->balance -= amt;
 
     if (rec_acc != NULL)
     {
-        add_transactions(rec_acc, amt);
+        add_transactions(rec_acc, send_acc->acc_no, amt);
         rec_acc->balance += amt;
     }
 
@@ -310,27 +316,33 @@ void load_trans_info(TREE *pt, FILE *trans)
     // format - <account send from> <-ve amt>
     //          <amount send to> <+ve amt>
     char buffer[1024];
-    int row = 0;
     while (fgets(buffer, 1024, trans)) // reads line
     {
         ACC *acc = NULL;
-        row = 0;
+        int row = 0, transa;
+        long long int acc_no, o_acc_no;
         const char *value = strtok(buffer, ",");
+
         while (value)
         {
-                if (row == 0) // reads acc id
-                {
-                    long long int acc_no = atoll(value);
-                    acc = search(pt, acc_no);
-                    row++;
-                }
-                else // reads transactions
-                {
-                    int transa = atoi(value);
-                    add_transactions(acc, transa);
-                    row++;
-                }
-                value = strtok(NULL, ",");
+            if (row == 0) // reads acc id
+            {
+                acc_no = atoll(value);
+                acc = search(pt, acc_no);
+                row++;
+            }
+            else if (row%2)
+            {
+                o_acc_no = atoll(value);
+                row++;
+            }
+            else // reads transactions
+            {
+                transa = atoi(value);
+                add_transactions(acc, o_acc_no,transa);
+                row++;
+            }
+            value = strtok(NULL, ",");
         }
     }
 }
@@ -430,6 +442,7 @@ void inorder(ACC *p)
 		inorder(p->right);
 	}
 }
+
 void inorderTraversal(TREE *pt)
 {
 	if(pt->root!=NULL)
@@ -457,7 +470,7 @@ void write_trans(ACC *account, FILE *fp_trans)
 
     TRANS* x;
     for (x = account->head; x != NULL; x = x->next)
-        fprintf(fp_trans, ", %d", x->trans);
+        fprintf(fp_trans, ", %lld, %d", x->acc_no, x->trans);
     fprintf(fp_trans, "\n");
     write_trans(account->left, fp_trans);
     write_trans(account->right, fp_trans);
@@ -498,6 +511,7 @@ void destroy(ACC *p)
 		free(p);
 	}
 }
+
 void destroyTree(TREE *pt)
 {
 	if(pt->root!=NULL)
@@ -669,7 +683,3 @@ int main()
     //printf("A-okay");
     return 0;
 }
-
-// transactions
-// updating
-// loading
