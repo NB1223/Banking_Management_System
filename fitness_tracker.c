@@ -73,6 +73,8 @@ typedef struct tracking_parameters
 typedef struct challenges
 {
     char chall_name[20];
+    int hrs;
+    struct challenges *next;
 }CHALL;
 
 typedef struct list
@@ -105,11 +107,38 @@ void init_list(LIST *pl)
 	pl->head_chall=NULL;
 }
 
+void init_hm(HM *hm)
+{
+    hm->age=0;
+    hm->curr_bmi=0;
+    hm->curr_height=0;
+    hm->curr_weight=0;
+    hm->gender='\0';
+}
+
+void init_chall(CHALL *chall)
+{
+    chall->hrs=0;
+    chall->next=NULL;
+}
 
 
 int main()
 {
     char name[20];
+    STACK sobj;
+    LIST obj;
+    DATE dobj;
+    HM hobj;
+    CHALL cobj;
+
+    init_stack(&sobj);
+    init_list(&obj);
+    init_date(&dobj);
+    init_hm(&hobj);
+    init_chall(&cobj);
+
+
     printf("Please enter your name - "); scanf("%s", name);
 
     printf("\t\t-------------------------\n\t\t\tWelcome %s !!\n", name);
