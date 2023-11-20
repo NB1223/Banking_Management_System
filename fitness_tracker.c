@@ -17,6 +17,13 @@ typedef struct goals_hrs
 
 }GOALS_H;
 
+typedef struct stack
+{
+    GOALS_H *top_hrs;
+    GOALS_S *top_steps;
+
+}STACK;
+
 typedef struct date
 {
     int day;
@@ -62,40 +69,42 @@ typedef struct tracking_parameters
 
 }TRACK;
 
+
 typedef struct challenges
 {
     char chall_name[20];
 }CHALL;
 
-int main()
+typedef struct list
 {
-    char name[20];
-    printf("Please enter your name - "); scanf("%s", name);
+	LOG *head_log;
+    FOOD *head_food;
+    TRACK *head_track;
+    CHALL *head_chall;
 
-    printf("\t\t-------------------------\n\t\t\tWelcome %s !!\n", name);
+}LIST;
 
-    int level;
-    printf("Choose Difficulty Level - \n1.Beginner \n2.Intermidiate \n3.Advanced\n ~"); scanf("%d", &level);
-
-    switch (level)
-    {
-    case 1:
-        printf("Here in beginner");
-        break;
-
-    case 2:
-        printf("Here in Intermidiate");
-        break;
-
-    case 3:
-        printf("Here in Advanced");
-        break;
-
-    default:
-        printf("Enter Valid Output");
-        break;
-    }    
+void init_stack(STACK *ps)
+{
+    ps->top_hrs=NULL;
+    ps->top_steps=NULL;
 }
+
+void init_date(DATE *dt)
+{
+    dt->day=0;
+    dt->month=0;
+    dt->year=0;
+}
+
+void init_list(LIST *pl)
+{
+	pl->head_log=NULL;
+	pl->head_food=NULL;
+	pl->head_track=NULL;
+	pl->head_chall=NULL;
+}
+
 
 
 int main()
